@@ -1,11 +1,24 @@
 package com.example.weeklymileagewidget
 
+//import com.androidplot.demos.R;
+
+
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.widget.RemoteViews
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.widget.RemoteViews;
+import com.androidplot.ui.*;
+import com.androidplot.util.PixelUtils;
+import com.androidplot.xy.XYGraphWidget;
+import com.androidplot.xy.XYSeries;
+import com.androidplot.xy.LineAndPointFormatter;
+import com.androidplot.xy.SimpleXYSeries;
+import com.androidplot.xy.XYPlot;
 import java.text.DateFormat
 import java.util.*
 
@@ -45,6 +58,104 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         val dateString: String =
             DateFormat.getTimeInstance(DateFormat.SHORT).format(Date())
 
+        // androidplot stuff 1
+        val plot = XYPlot(context, "Widget Example")
+        val h = context.resources
+            .getDimension(R.dimen.sample_widget_height).toInt()
+
+        val w = context.resources
+            .getDimension(R.dimen.sample_widget_width).toInt()
+
+        plot.graph.setMargins(0f, 0f, 0f, 0f)
+        plot.graph.setPadding(0f, 0f, 0f, 0f)
+
+        plot.graph.position(
+            0f, HorizontalPositioning.ABSOLUTE_FROM_LEFT, 0f,
+            VerticalPositioning.ABSOLUTE_FROM_TOP, Anchor.LEFT_TOP
+        )
+
+        plot.graph.size = Size.FILL
+
+        plot.layoutManager.moveToTop(plot.title)
+
+        plot.graph.setLineLabelEdges(
+            XYGraphWidget.Edge.LEFT,
+            XYGraphWidget.Edge.BOTTOM
+        )
+        plot.graph.lineLabelInsets.left = PixelUtils.dpToPix(16f)
+        plot.graph.lineLabelInsets.bottom = PixelUtils.dpToPix(4f)
+        plot.graph.getLineLabelStyle(XYGraphWidget.Edge.LEFT).paint.color =
+            Color.RED
+        plot.graph.gridInsets.top = PixelUtils.dpToPix(12f)
+        plot.graph.gridInsets.right = PixelUtils.dpToPix(12f)
+        plot.graph.gridInsets.left = PixelUtils.dpToPix(36f)
+        plot.graph.gridInsets.bottom = PixelUtils.dpToPix(16f)
+
+        plot.measure(w, h)
+        plot.layout(0, 0, w, h)
+
+        // Turn the above arrays into XYSeries':
+        val series1: XYSeries = SimpleXYSeries(
+            listOf(1, 4, 2, 8, 4, 16, 8, 32, 16, 64),  // SimpleXYSeries takes a List so turn our array into a List
+            SimpleXYSeries.ArrayFormat.Y_VALS_ONLY,  // Y_VALS_ONLY means use the element index as the x value
+            "Series1"
+        ) // Set the display title of the series
+
+
+        // same as above
+
+        // same as above
+        val series2: XYSeries = SimpleXYSeries(
+            listOf(5, 2, 10, 5, 20, 10, 40, 20, 80, 40),
+            SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "Series2"
+        )
+
+        // Create a formatter to use for drawing a series using LineAndPointRenderer:
+
+        // Create a formatter to use for drawing a series using LineAndPointRenderer:
+        val series1Format = LineAndPointFormatter(
+            Color.rgb(0, 200, 0),  // line color
+            Color.rgb(0, 100, 0),  // point color
+            null, null
+        ) // fill color (none)
+
+
+        // add a new series' to the xyplot:
+
+        // add a new series' to the xyplot:
+        plot.addSeries(series1, series1Format)
+
+        // same as above:
+
+        // same as above:
+        plot.addSeries(
+            series2,
+            LineAndPointFormatter(
+                Color.rgb(0, 0, 200),
+                Color.rgb(0, 0, 100),
+                null,
+                null
+            )
+        )
+
+
+        // reduce the number of range labels
+
+
+        // reduce the number of range labels
+        plot.linesPerRangeLabel = 3
+        plot.linesPerDomainLabel = 2
+
+        // hide the legend:
+
+        // hide the legend:
+        plot.legend.isVisible = false
+
+        val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        plot.draw(Canvas(bitmap))
+
+
+
         val views =
             RemoteViews(context.packageName, R.layout.weekly_mileage_widget)
         views.setTextViewText(R.id.appwidget_id, appWidgetId.toString())
@@ -69,6 +180,10 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         )
 
         views.setOnClickPendingIntent(R.id.widget_layout_id, pendingUpdate);
+
+        // Androidplot stuff
+        views.setImageViewBitmap(R.id.imgView, bitmap);
+
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views)

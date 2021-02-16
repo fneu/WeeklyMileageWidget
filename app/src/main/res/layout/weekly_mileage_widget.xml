@@ -56,4 +56,22 @@
                 android:text="@string/date_count_format"
                 style="@style/AppWidgetText"/>
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/section_diagram"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/section_update"
+        android:orientation="vertical"
+        style="@style/AppWidgetSection">
+
+        <ImageView
+            android:id="@+id/imgView"
+            android:scaleType="centerInside"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:contentDescription="@string/diagram" />
+    </LinearLayout>
 </RelativeLayout>
