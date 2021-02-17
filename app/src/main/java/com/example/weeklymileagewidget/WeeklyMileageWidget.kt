@@ -8,19 +8,23 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.widget.RemoteViews;
-import com.androidplot.ui.*;
-import com.androidplot.util.PixelUtils;
-import com.androidplot.xy.XYGraphWidget;
-import com.androidplot.xy.XYSeries;
-import com.androidplot.xy.LineAndPointFormatter;
-import com.androidplot.xy.SimpleXYSeries;
-import com.androidplot.xy.XYPlot;
+import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.os.Bundle
+import android.widget.RemoteViews
+import com.androidplot.ui.Anchor
+import com.androidplot.ui.HorizontalPositioning
+import com.androidplot.ui.Size
+import com.androidplot.ui.VerticalPositioning
+import com.androidplot.util.PixelUtils
+import com.androidplot.xy.*
 import java.text.DateFormat
 import java.util.*
+
+// convert widget size in dp to bitmap px
+fun Int.toPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()
 
 
 /**
@@ -30,6 +34,7 @@ class WeeklyMileageWidget : AppWidgetProvider() {
     private val mSharedPrefFile =
         "com.example.weeklymileagewidget"
     private val COUNT_KEY = "count"
+
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -43,6 +48,15 @@ class WeeklyMileageWidget : AppWidgetProvider() {
 
     override fun onEnabled(context: Context) {
         // Enter relevant functionality for when the first widget is created
+    }
+
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        widgetInfo: Bundle
+    ) {
+        updateAppWidget(context, appWidgetManager, appWidgetId)
     }
 
     private fun updateAppWidget(
@@ -60,11 +74,15 @@ class WeeklyMileageWidget : AppWidgetProvider() {
 
         // androidplot stuff 1
         val plot = XYPlot(context, "Widget Example")
-        val h = context.resources
-            .getDimension(R.dimen.sample_widget_height).toInt()
 
-        val w = context.resources
-            .getDimension(R.dimen.sample_widget_width).toInt()
+        //val h = context.resources
+        //    .getDimension(R.dimen.sample_widget_height).toInt()
+        //val w = context.resources
+        //    .getDimension(R.dimen.sample_widget_width).toInt()
+
+        val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+        val h = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT).toPx()
+        val w = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toPx()
 
         plot.graph.setMargins(0f, 0f, 0f, 0f)
         plot.graph.setPadding(0f, 0f, 0f, 0f)
@@ -96,7 +114,18 @@ class WeeklyMileageWidget : AppWidgetProvider() {
 
         // Turn the above arrays into XYSeries':
         val series1: XYSeries = SimpleXYSeries(
-            listOf(1, 4, 2, 8, 4, 16, 8, 32, 16, 64),  // SimpleXYSeries takes a List so turn our array into a List
+            listOf(
+                1,
+                4,
+                2,
+                8,
+                4,
+                16,
+                8,
+                32,
+                16,
+                64
+            ),  // SimpleXYSeries takes a List so turn our array into a List
             SimpleXYSeries.ArrayFormat.Y_VALS_ONLY,  // Y_VALS_ONLY means use the element index as the x value
             "Series1"
         ) // Set the display title of the series
@@ -158,11 +187,8 @@ class WeeklyMileageWidget : AppWidgetProvider() {
 
         val views =
             RemoteViews(context.packageName, R.layout.weekly_mileage_widget)
-        views.setTextViewText(R.id.appwidget_id, appWidgetId.toString())
 
-        views.setTextViewText(R.id.appwidget_update,
-            context.resources.getString(
-                R.string.date_count_format, count, dateString));
+        views.setTextViewText(R.id.appwidget_update, w.toString());
 
         val prefEditor = prefs.edit()
         prefEditor.putInt(COUNT_KEY + appWidgetId, count)
