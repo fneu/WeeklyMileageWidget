@@ -69,28 +69,28 @@
     </LinearLayout>-->
 
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/widget_layout_id"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/ap_transparent"
-    android:padding="@dimen/widget_margin">
+        android:id="@+id/widget_layout_id"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:padding="@dimen/widget_margin">
 
-    <ImageView
-        android:id="@+id/imgView"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:background="#00FFFFFF"
-        android:scaleType="fitCenter" />
+        <ImageView
+            android:id="@+id/imgView"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:background="#00FFFFFF"
+            android:scaleType="fitCenter" />
 
-        <TextView
-            android:id="@+id/appwidget_update"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_gravity="top|start"
-            android:background="@color/ap_transparent"
-            android:gravity="center"
-            android:text="XX"
-            android:textColor="@color/off_white"
-            android:textSize="30sp" />
+    <TextView
+        android:id="@+id/appwidget_update"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="top|start"
+        android:background="@android:color/transparent"
+        android:gravity="center"
+        android:text="XX"
+        android:textColor="@android:color/white"
+        android:textSize="30sp" />
     </FrameLayout>
 

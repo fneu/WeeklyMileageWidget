@@ -1,27 +1,21 @@
 package com.example.weeklymileagewidget
 
-//import com.androidplot.demos.R;
-
-
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
 import android.os.Bundle
 import android.widget.RemoteViews
-import com.androidplot.ui.Anchor
-import com.androidplot.ui.HorizontalPositioning
-import com.androidplot.ui.Size
-import com.androidplot.ui.VerticalPositioning
-import com.androidplot.util.PixelUtils
-import com.androidplot.xy.*
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.components.YAxis
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import java.text.DateFormat
 import java.util.*
+
 
 // convert widget size in dp to bitmap px
 fun Int.toPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()
@@ -72,118 +66,34 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         val dateString: String =
             DateFormat.getTimeInstance(DateFormat.SHORT).format(Date())
 
-        // androidplot stuff 1
-        val plot = XYPlot(context, "Widget Example")
-
-        //val h = context.resources
-        //    .getDimension(R.dimen.sample_widget_height).toInt()
-        //val w = context.resources
-        //    .getDimension(R.dimen.sample_widget_width).toInt()
-
         val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
         val h = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT).toPx()
         val w = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toPx()
+        val list1 = listOf(4.65, 10.4, 20.41, 29.94, 38.45, 47.56, 56.23)
+        val list2 = listOf(6.25, 13.84, 15.87)
 
-        plot.graph.setMargins(0f, 0f, 0f, 0f)
-        plot.graph.setPadding(0f, 0f, 0f, 0f)
-
-        plot.graph.position(
-            0f, HorizontalPositioning.ABSOLUTE_FROM_LEFT, 0f,
-            VerticalPositioning.ABSOLUTE_FROM_TOP, Anchor.LEFT_TOP
-        )
-
-        plot.graph.size = Size.FILL
-
-        plot.layoutManager.moveToTop(plot.title)
-
-        plot.graph.setLineLabelEdges(
-            XYGraphWidget.Edge.LEFT,
-            XYGraphWidget.Edge.BOTTOM
-        )
-        plot.graph.lineLabelInsets.left = PixelUtils.dpToPix(16f)
-        plot.graph.lineLabelInsets.bottom = PixelUtils.dpToPix(4f)
-        plot.graph.getLineLabelStyle(XYGraphWidget.Edge.LEFT).paint.color =
-            Color.RED
-        plot.graph.gridInsets.top = PixelUtils.dpToPix(12f)
-        plot.graph.gridInsets.right = PixelUtils.dpToPix(12f)
-        plot.graph.gridInsets.left = PixelUtils.dpToPix(36f)
-        plot.graph.gridInsets.bottom = PixelUtils.dpToPix(16f)
-
-        plot.measure(w, h)
-        plot.layout(0, 0, w, h)
-
-        // Turn the above arrays into XYSeries':
-        val series1: XYSeries = SimpleXYSeries(
-            listOf(
-                1,
-                4,
-                2,
-                8,
-                4,
-                16,
-                8,
-                32,
-                16,
-                64
-            ),  // SimpleXYSeries takes a List so turn our array into a List
-            SimpleXYSeries.ArrayFormat.Y_VALS_ONLY,  // Y_VALS_ONLY means use the element index as the x value
-            "Series1"
-        ) // Set the display title of the series
+        val chart = LineChart(context)
 
 
-        // same as above
-
-        // same as above
-        val series2: XYSeries = SimpleXYSeries(
-            listOf(5, 2, 10, 5, 20, 10, 40, 20, 80, 40),
-            SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "Series2"
-        )
-
-        // Create a formatter to use for drawing a series using LineAndPointRenderer:
-
-        // Create a formatter to use for drawing a series using LineAndPointRenderer:
-        val series1Format = LineAndPointFormatter(
-            Color.rgb(0, 200, 0),  // line color
-            Color.rgb(0, 100, 0),  // point color
-            null, null
-        ) // fill color (none)
+        val entries1 = ArrayList<Entry>()
+        entries1.add(Entry(0f, 0f))
+        for (i in list1.indices) entries1.add(Entry(i.toFloat()+1, list1[i].toFloat()))
+        val dataSet1 = LineDataSet(entries1, "a")
+        dataSet1.axisDependency = YAxis.AxisDependency.LEFT
 
 
-        // add a new series' to the xyplot:
-
-        // add a new series' to the xyplot:
-        plot.addSeries(series1, series1Format)
-
-        // same as above:
-
-        // same as above:
-        plot.addSeries(
-            series2,
-            LineAndPointFormatter(
-                Color.rgb(0, 0, 200),
-                Color.rgb(0, 0, 100),
-                null,
-                null
-            )
-        )
+        val entries2 = ArrayList<Entry>()
+        entries2.add(Entry(0f, 0f))
+        for (i in list2.indices) entries2.add(Entry(i.toFloat()+1, list2[i].toFloat()))
+        val dataSet2 = LineDataSet(entries2, "b")
+        dataSet2.axisDependency = YAxis.AxisDependency.LEFT
 
 
-        // reduce the number of range labels
+        val lineData = LineData(dataSet1, dataSet2)
+        chart.data = lineData
+        chart.layout(0, 0, w, h)
 
-
-        // reduce the number of range labels
-        plot.linesPerRangeLabel = 3
-        plot.linesPerDomainLabel = 2
-
-        // hide the legend:
-
-        // hide the legend:
-        plot.legend.isVisible = false
-
-        val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        plot.draw(Canvas(bitmap))
-
-
+        val chartBitmap = chart.chartBitmap
 
         val views =
             RemoteViews(context.packageName, R.layout.weekly_mileage_widget)
@@ -208,7 +118,7 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         views.setOnClickPendingIntent(R.id.widget_layout_id, pendingUpdate);
 
         // Androidplot stuff
-        views.setImageViewBitmap(R.id.imgView, bitmap);
+        views.setImageViewBitmap(R.id.imgView, chartBitmap);
 
 
         // Instruct the widget manager to update the widget

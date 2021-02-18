@@ -19,7 +19,3 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
-
-
-# https://github.com/halfhp/androidplot/blob/master/docs/quickstart.md
--keep class com.androidplot.** { *; }
