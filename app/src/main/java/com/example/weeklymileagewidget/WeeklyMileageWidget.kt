@@ -13,11 +13,17 @@ import android.graphics.Color.argb
 import android.os.Bundle
 import android.widget.RemoteViews
 import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.components.*
+import com.github.mikephil.charting.components.AxisBase
+import com.github.mikephil.charting.components.LimitLine
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.utils.Transformer
+import com.github.mikephil.charting.utils.Utils
+import com.github.mikephil.charting.utils.ViewPortHandler
 import java.text.DateFormat
 import java.util.*
 
@@ -33,7 +39,8 @@ class XAxisWeekFormatter(context: Context) : ValueFormatter() {
         context.getString(R.string.letter_thursday),
         context.getString(R.string.letter_friday),
         context.getString(R.string.letter_saturday),
-        context.getString(R.string.letter_sunday))
+        context.getString(R.string.letter_sunday)
+    )
 
     override fun getAxisLabel(value: Float, axis: AxisBase?): String {
         return days.getOrNull(value.toInt()) ?: value.toString()
@@ -89,13 +96,12 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         val h = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT).toPx()
         val w = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toPx()
         val list1 = listOf(4.65, 10.4, 20.41, 29.94, 38.45, 47.56, 56.23)
-        val list2 = listOf(6.25, 13.84, 15.87, 30.0)
+        val list2 = listOf(6.25, 13.84, 15.87, 30.0, 40.0, 50.0, 59.0)
 
         val chart = LineChart(context)
 
 
         val entries1 = ArrayList<Entry>()
-        entries1.add(Entry(-0.31f,0f))
         for (i in list1.indices) entries1.add(
             Entry(
                 i.toFloat(),
@@ -104,14 +110,14 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         )
         val dataSet1 = LineDataSet(entries1, "a")
         dataSet1.axisDependency = YAxis.AxisDependency.LEFT
-        dataSet1.setCircleColor(argb(100, 255, 255,255))
-        dataSet1.color = argb(100, 255, 255,255)
+        dataSet1.setCircleColor(argb(100, 255, 255, 255))
+        dataSet1.color = argb(100, 255, 255, 255)
         dataSet1.setDrawValues(false)
         dataSet1.setDrawCircleHole(false)
-        dataSet1.lineWidth = 2.5f
+        dataSet1.lineWidth = 4f
+        dataSet1.circleRadius = 5f
 
         val entries2 = ArrayList<Entry>()
-        entries2.add(Entry(-0.31f,0f))
         for (i in list2.indices) entries2.add(
             Entry(
                 i.toFloat(),
@@ -123,23 +129,22 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         dataSet2.color = Color.WHITE
         dataSet2.setCircleColor(Color.WHITE)
         dataSet2.setDrawCircleHole(false)
-        dataSet2.lineWidth = 3f
+        dataSet2.lineWidth = 5f
         dataSet2.setDrawCircleHole(true)
         dataSet2.circleHoleColor = Color.WHITE
-        dataSet2.circleHoleRadius = 3f
-        dataSet2.circleRadius = 8f
-        val labelColorList = MutableList<Int>(list2.size) {Color.TRANSPARENT}
+        dataSet2.circleHoleRadius = 5f
+        dataSet2.circleRadius = 10f
+        val labelColorList = MutableList<Int>(list2.size - 1) {Color.TRANSPARENT}
         labelColorList.add(Color.WHITE)
         dataSet2.setValueTextColors(labelColorList)
-        dataSet2.valueTextSize = 16f
-        val circleColorList = MutableList<Int>(list2.size) {Color.TRANSPARENT}
-        circleColorList.add(argb(80, 255, 255,255))
+        dataSet2.valueTextSize = 24f
+        val circleColorList = MutableList<Int>(list2.size - 1) {Color.TRANSPARENT}
+        circleColorList.add(argb(80, 255, 255, 255))
         dataSet2.circleColors = circleColorList
 
 
 
         val lineData = LineData(dataSet1, dataSet2)
-
         chart.data = lineData
         chart.layout(0, 0, w, h)
         chart.setBackgroundColor(Color.TRANSPARENT)
@@ -147,30 +152,50 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         chart.xAxis.valueFormatter = XAxisWeekFormatter(context)
         chart.xAxis.setDrawGridLines(false)
         chart.xAxis.setDrawAxisLine(false)
-        chart.xAxis.axisLineColor = Color.WHITE
         chart.xAxis.textColor = Color.WHITE
         chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
         chart.xAxis.axisMinimum = -0.3f
         chart.xAxis.axisMaximum = 6.3f
-        chart.xAxis.textSize = 12f
+        chart.xAxis.textSize = 14f
+        chart.extraBottomOffset = 10f
         chart.axisRight.isEnabled = false
         chart.axisLeft.setDrawGridLines(false)
         chart.axisLeft.setDrawAxisLine(false)
         chart.axisLeft.axisMinimum = 0f
+        val maxVal = (list1+list2+listOf(60.0)).max()!!.toFloat()
+        chart.axisLeft.axisMaximum = maxVal
         chart.axisLeft.setDrawLabels(false)
+        chart.axisLeft.setDrawZeroLine(true)
+        chart.axisLeft.zeroLineColor = Color.WHITE
+        chart.axisLeft.yOffset
 
-
-        val ll = LimitLine(50f, "50")
-        ll.lineColor = argb(100, 255, 255,255)
+        val ll = LimitLine(60f, "60")
+        ll.lineColor = argb(100, 255, 255, 255)
         ll.lineWidth = 2f
-        ll.textColor = argb(100, 255, 255,255)
+        ll.textColor = argb(100, 255, 255, 255)
         ll.enableDashedLine(25f, 15f, 0f)
         ll.labelPosition = LimitLine.LimitLabelPosition.LEFT_BOTTOM
-        ll.textSize = 12f
+        ll.textSize = 16f
         chart.axisLeft.addLimitLine(ll)
         chart.legend.isEnabled = false
         chart.description.isEnabled = false
-        chart.invalidate()
+
+        // make space for value label at the top
+        // but only as much as necessary
+        val spaceTopNeeded = 36.5f
+        val yTopMost = chart.getPixelForValues(
+            0f,
+            maxVal,
+            YAxis.AxisDependency.LEFT
+        ).y
+        val yTopActual = chart.getPixelForValues(
+            (list2.size - 1).toFloat(),
+            list2.last().toFloat(),
+            YAxis.AxisDependency.LEFT
+        ).y
+        val spaceTopExtraPixels = yTopActual - yTopMost
+        val spaceTopExtraDP = Utils.convertPixelsToDp(spaceTopExtraPixels.toFloat())
+        chart.extraTopOffset = spaceTopNeeded-spaceTopExtraDP
 
         // chart.getChartBitmap() returns RGB_565 but we need ARGB_8888
         // Define a bitmap with the same size as the view
