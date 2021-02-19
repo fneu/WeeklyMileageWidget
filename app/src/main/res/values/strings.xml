@@ -8,4 +8,11 @@
     <string name="date_count_format">%1$d @%2$s</string>
     <string name="update_now">Update now</string>
     <string name="diagram">diagram</string>
+    <string name="letter_monday">M</string>
+    <string name="letter_tuesday">D</string>
+    <string name="letter_wednesday">M</string>
+    <string name="letter_thursday">D</string>
+    <string name="letter_friday">F</string>
+    <string name="letter_saturday">S</string>
+    <string name="letter_sunday">S</string>
 </resources>
