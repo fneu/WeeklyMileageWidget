@@ -89,12 +89,13 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         val h = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT).toPx()
         val w = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toPx()
         val list1 = listOf(4.65, 10.4, 20.41, 29.94, 38.45, 47.56, 56.23)
-        val list2 = listOf(6.25)//, 13.84, 15.87, 30.0)
+        val list2 = listOf(6.25, 13.84, 15.87, 30.0)
 
         val chart = LineChart(context)
 
 
         val entries1 = ArrayList<Entry>()
+        entries1.add(Entry(-0.31f,0f))
         for (i in list1.indices) entries1.add(
             Entry(
                 i.toFloat(),
@@ -103,13 +104,14 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         )
         val dataSet1 = LineDataSet(entries1, "a")
         dataSet1.axisDependency = YAxis.AxisDependency.LEFT
-        dataSet1.setCircleColor(argb(130, 255, 255, 255))
-        dataSet1.color = argb(130, 255, 255, 255)
+        dataSet1.setCircleColor(argb(100, 255, 255,255))
+        dataSet1.color = argb(100, 255, 255,255)
         dataSet1.setDrawValues(false)
         dataSet1.setDrawCircleHole(false)
-        dataSet1.lineWidth = 2f
+        dataSet1.lineWidth = 2.5f
 
         val entries2 = ArrayList<Entry>()
+        entries2.add(Entry(-0.31f,0f))
         for (i in list2.indices) entries2.add(
             Entry(
                 i.toFloat(),
@@ -126,12 +128,12 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         dataSet2.circleHoleColor = Color.WHITE
         dataSet2.circleHoleRadius = 3f
         dataSet2.circleRadius = 8f
-        val labelColorList = MutableList<Int>(list2.size-1) {Color.TRANSPARENT}
+        val labelColorList = MutableList<Int>(list2.size) {Color.TRANSPARENT}
         labelColorList.add(Color.WHITE)
         dataSet2.setValueTextColors(labelColorList)
         dataSet2.valueTextSize = 16f
-        val circleColorList = MutableList<Int>(list2.size-1) {Color.TRANSPARENT}
-        circleColorList.add(argb(120, 255, 255,255))
+        val circleColorList = MutableList<Int>(list2.size) {Color.TRANSPARENT}
+        circleColorList.add(argb(80, 255, 255,255))
         dataSet2.circleColors = circleColorList
 
 
@@ -144,7 +146,7 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         chart.setDrawGridBackground(false);
         chart.xAxis.valueFormatter = XAxisWeekFormatter(context)
         chart.xAxis.setDrawGridLines(false)
-        chart.xAxis.setDrawAxisLine(true)
+        chart.xAxis.setDrawAxisLine(false)
         chart.xAxis.axisLineColor = Color.WHITE
         chart.xAxis.textColor = Color.WHITE
         chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
@@ -159,9 +161,9 @@ class WeeklyMileageWidget : AppWidgetProvider() {
 
 
         val ll = LimitLine(50f, "50")
-        ll.lineColor = argb(80, 255, 255,255)
+        ll.lineColor = argb(100, 255, 255,255)
         ll.lineWidth = 2f
-        ll.textColor = argb(80, 255, 255,255)
+        ll.textColor = argb(100, 255, 255,255)
         ll.enableDashedLine(25f, 15f, 0f)
         ll.labelPosition = LimitLine.LimitLabelPosition.LEFT_BOTTOM
         ll.textSize = 12f
