@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:key="strava_category"
+        android:title="Strava">
+
+        <Preference
+            android:key="strava_connect"
+            android:title="Connect Strava Account"/>
+
+        <Preference
+            android:key="strava_disconnect"
+            android:title="Disconnect"
+            app:isPreferenceVisible ="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="data_category"
+        android:title="Values">
+
+        <ListPreference
+            android:key="units"
+            android:title="Unit"
+            android:entries="@array/unitAlias"
+            android:entryValues="@array/unit"
+            android:defaultValue="kilometers"/>
+
+        <EditTextPreference
+            android:key="goal"
+            android:title="Goal Volume"
+            app:defaultValue="30"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="colors_category"
+        android:title="Colors">
+
+        <ListPreference
+            android:key="style"
+            android:title="Preset styles"
+            android:entries="@array/styleAlias"
+            android:entryValues="@array/style"
+            />
+
+        <com.rarepebble.colorpicker.ColorPreference
+            android:key="color_background"
+            android:title="Background"
+            android:defaultValue="#00000000"
+            />
+
+        <com.rarepebble.colorpicker.ColorPreference
+            android:key="color_this_week"
+            android:title="Current week"
+            android:defaultValue="#ffffffff"
+            />
+
+        <com.rarepebble.colorpicker.ColorPreference
+            android:key="color_last_week"
+            android:title="Last week"
+            android:defaultValue="#ffa8a8a8"
+            />
+
+        <com.rarepebble.colorpicker.ColorPreference
+            android:key="color_x_axis"
+            android:title="X-Axis labels and zero line"
+            android:defaultValue="#ffffffff"
+            />
+
+        <com.rarepebble.colorpicker.ColorPreference
+            android:key="color_goal"
+            android:title="Mileage goal"
+            android:defaultValue="#64ffffff"
+            />
+    </PreferenceCategory>
+
+</PreferenceScreen>

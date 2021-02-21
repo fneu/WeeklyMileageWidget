@@ -3,8 +3,10 @@ package com.example.weeklymileagewidget
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -12,6 +14,7 @@ import android.graphics.Color
 import android.graphics.Color.argb
 import android.os.Bundle
 import android.widget.RemoteViews
+import androidx.preference.PreferenceManager
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.LimitLine
@@ -21,10 +24,7 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
-import com.github.mikephil.charting.utils.Transformer
 import com.github.mikephil.charting.utils.Utils
-import com.github.mikephil.charting.utils.ViewPortHandler
-import java.text.DateFormat
 import java.util.*
 
 
@@ -51,9 +51,14 @@ class XAxisWeekFormatter(context: Context) : ValueFormatter() {
  * Implementation of App Widget functionality.
  */
 class WeeklyMileageWidget : AppWidgetProvider() {
-    private val mSharedPrefFile =
-        "com.example.weeklymileagewidget"
-    private val COUNT_KEY = "count"
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (context.getString(R.string.updateIntentString) == intent.action)
+        {
+            externalUpdate(context)
+        }
+    }
 
     override fun onUpdate(
         context: Context,
@@ -66,10 +71,6 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         }
     }
 
-    override fun onEnabled(context: Context) {
-        // Enter relevant functionality for when the first widget is created
-    }
-
     override fun onAppWidgetOptionsChanged(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -79,24 +80,31 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         updateAppWidget(context, appWidgetManager, appWidgetId)
     }
 
+    private fun externalUpdate(context: Context){
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(
+            ComponentName(
+                context,
+                this.javaClass
+            )
+        )
+        for (appWidgetId in appWidgetIds) {
+            updateAppWidget(context, appWidgetManager, appWidgetId)
+        }
+    }
+
     private fun updateAppWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
-        val prefs = context.getSharedPreferences(
-            mSharedPrefFile, 0
-        )
-        var count = prefs.getInt(COUNT_KEY + appWidgetId, 0)
-        count++
-        val dateString: String =
-            DateFormat.getTimeInstance(DateFormat.SHORT).format(Date())
-
+        val prefs: SharedPreferences =
+            PreferenceManager.getDefaultSharedPreferences(context)
         val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
         val h = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT).toPx()
         val w = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toPx()
         val list1 = listOf(4.65, 10.4, 20.41, 29.94, 38.45, 47.56, 56.23)
-        val list2 = listOf(6.25, 13.84, 15.87, 30.0, 40.0, 50.0, 59.0)
+        val list2 = listOf(6.25, 13.84, 15.87, 30.0, 33.0, 49.61)
 
         val chart = LineChart(context)
 
@@ -110,8 +118,8 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         )
         val dataSet1 = LineDataSet(entries1, "a")
         dataSet1.axisDependency = YAxis.AxisDependency.LEFT
-        dataSet1.setCircleColor(argb(100, 255, 255, 255))
-        dataSet1.color = argb(100, 255, 255, 255)
+        dataSet1.setCircleColor(prefs.getInt("color_last_week", 0))
+        dataSet1.color = prefs.getInt("color_last_week", 0)
         dataSet1.setDrawValues(false)
         dataSet1.setDrawCircleHole(false)
         dataSet1.lineWidth = 4f
@@ -126,20 +134,25 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         )
         val dataSet2 = LineDataSet(entries2, "b")
         dataSet2.axisDependency = YAxis.AxisDependency.LEFT
-        dataSet2.color = Color.WHITE
-        dataSet2.setCircleColor(Color.WHITE)
+        dataSet2.color = prefs.getInt("color_this_week", 0)
+        dataSet2.setCircleColor(prefs.getInt("color_this_week", 0))
         dataSet2.setDrawCircleHole(false)
         dataSet2.lineWidth = 5f
         dataSet2.setDrawCircleHole(true)
-        dataSet2.circleHoleColor = Color.WHITE
+        dataSet2.circleHoleColor = prefs.getInt("color_this_week", 0)
         dataSet2.circleHoleRadius = 5f
         dataSet2.circleRadius = 10f
-        val labelColorList = MutableList<Int>(list2.size - 1) {Color.TRANSPARENT}
-        labelColorList.add(Color.WHITE)
+        val labelColorList = MutableList(list2.size - 1) {Color.TRANSPARENT}
+        labelColorList.add(prefs.getInt("color_this_week", 0))
         dataSet2.setValueTextColors(labelColorList)
         dataSet2.valueTextSize = 24f
-        val circleColorList = MutableList<Int>(list2.size - 1) {Color.TRANSPARENT}
-        circleColorList.add(argb(80, 255, 255, 255))
+        val circleColorList = MutableList(list2.size - 1) {Color.TRANSPARENT}
+
+        // alpha halved, others stay the same
+        circleColorList.add(argb(Color.alpha(prefs.getInt("color_this_week", 0))/2,
+            Color.red(prefs.getInt("color_this_week", 0)),
+            Color.green(prefs.getInt("color_this_week", 0)),
+            Color.blue(prefs.getInt("color_this_week", 0))))
         dataSet2.circleColors = circleColorList
 
 
@@ -147,12 +160,12 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         val lineData = LineData(dataSet1, dataSet2)
         chart.data = lineData
         chart.layout(0, 0, w, h)
-        chart.setBackgroundColor(Color.TRANSPARENT)
-        chart.setDrawGridBackground(false);
+        chart.setBackgroundColor(prefs.getInt("color_background", 0))
+        chart.setDrawGridBackground(false)
         chart.xAxis.valueFormatter = XAxisWeekFormatter(context)
         chart.xAxis.setDrawGridLines(false)
         chart.xAxis.setDrawAxisLine(false)
-        chart.xAxis.textColor = Color.WHITE
+        chart.xAxis.textColor = prefs.getInt("color_x_axis", 0)
         chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
         chart.xAxis.axisMinimum = -0.3f
         chart.xAxis.axisMaximum = 6.3f
@@ -162,17 +175,17 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         chart.axisLeft.setDrawGridLines(false)
         chart.axisLeft.setDrawAxisLine(false)
         chart.axisLeft.axisMinimum = 0f
-        val maxVal = (list1+list2+listOf(60.0)).max()!!.toFloat()
+        val maxVal = (list1+list2+listOf(prefs.getString("goal", "30")!!.toDouble())).max()!!.toFloat()
         chart.axisLeft.axisMaximum = maxVal
         chart.axisLeft.setDrawLabels(false)
         chart.axisLeft.setDrawZeroLine(true)
-        chart.axisLeft.zeroLineColor = Color.WHITE
+        chart.axisLeft.zeroLineColor = prefs.getInt("color_x_axis", 0)
         chart.axisLeft.yOffset
 
-        val ll = LimitLine(60f, "60")
-        ll.lineColor = argb(100, 255, 255, 255)
+        val ll = LimitLine(prefs.getString("goal", "30")!!.toFloat(), prefs.getString("goal", "30"))
+        ll.lineColor = prefs.getInt("color_goal", 0)
         ll.lineWidth = 2f
-        ll.textColor = argb(100, 255, 255, 255)
+        ll.textColor = prefs.getInt("color_goal", 0)
         ll.enableDashedLine(25f, 15f, 0f)
         ll.labelPosition = LimitLine.LimitLabelPosition.LEFT_BOTTOM
         ll.textSize = 16f
@@ -197,43 +210,49 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         val spaceTopExtraDP = Utils.convertPixelsToDp(spaceTopExtraPixels.toFloat())
         chart.extraTopOffset = spaceTopNeeded-spaceTopExtraDP
 
-        // chart.getChartBitmap() returns RGB_565 but we need ARGB_8888
-        // Define a bitmap with the same size as the view
-        val returnedBitmap =
-            Bitmap.createBitmap(
-                chart.width,
-                chart.height,
-                Bitmap.Config.ARGB_8888
+        // TODO: why would w be zero anyway?
+        if (w>0) {
+            // chart.getChartBitmap() returns RGB_565 but we need ARGB_8888
+            // Define a bitmap with the same size as the view
+            val returnedBitmap =
+                Bitmap.createBitmap(
+                    w,
+                    h,
+                    Bitmap.Config.ARGB_8888
+                )
+            // Bind a canvas to it
+            val canvas = Canvas(returnedBitmap)
+            chart.draw(canvas)
+
+            val views =
+                RemoteViews(
+                    context.packageName,
+                    R.layout.weekly_mileage_widget
+                )
+
+            val intentUpdate = Intent(context, WeeklyMileageWidget::class.java)
+            intentUpdate.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+
+            val idArray = intArrayOf(appWidgetId)
+            intentUpdate.putExtra(
+                AppWidgetManager.EXTRA_APPWIDGET_IDS,
+                idArray
             )
-        // Bind a canvas to it
-        val canvas = Canvas(returnedBitmap)
-        chart.draw(canvas)
 
-        val views =
-            RemoteViews(context.packageName, R.layout.weekly_mileage_widget)
+            val pendingUpdate = PendingIntent.getBroadcast(
+                context, appWidgetId, intentUpdate,
+                PendingIntent.FLAG_UPDATE_CURRENT
+            )
 
-        val prefEditor = prefs.edit()
-        prefEditor.putInt(COUNT_KEY + appWidgetId, count)
-        prefEditor.apply()
+            views.setOnClickPendingIntent(
+                R.id.widget_layout_id,
+                pendingUpdate
+            )
 
-        val intentUpdate = Intent(context, WeeklyMileageWidget::class.java)
-        intentUpdate.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            views.setImageViewBitmap(R.id.imgView, returnedBitmap)
 
-        val idArray = intArrayOf(appWidgetId)
-        intentUpdate.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, idArray);
-
-        val pendingUpdate = PendingIntent.getBroadcast(
-            context, appWidgetId, intentUpdate,
-            PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        views.setOnClickPendingIntent(R.id.widget_layout_id, pendingUpdate);
-
-        // Androidplot stuff
-        views.setImageViewBitmap(R.id.imgView, returnedBitmap);
-
-
-        // Instruct the widget manager to update the widget
-        appWidgetManager.updateAppWidget(appWidgetId, views)
+            // Instruct the widget manager to update the widget
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
     }
 }

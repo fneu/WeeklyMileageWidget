@@ -15,4 +15,7 @@
     <string name="letter_friday">F</string>
     <string name="letter_saturday">S</string>
     <string name="letter_sunday">S</string>
+    <string name="miles">Meilen</string>
+    <string name="kilometers">Kilometer</string>
+    <string name="updateIntentString">UPDATE_MILEAGE_WIDGET</string>
 </resources>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="unitAlias">
+        <item>@string/miles</item>
+        <item>@string/kilometers</item>
+    </string-array>
+
+    <string-array name="unit">
+        <item>miles</item>
+        <item>kilometers</item>
+    </string-array>
+
+    <string-array name="styleAlias">
+        <item>Light</item>
+        <item>Dark</item>
+        <item>Minimal white</item>
+        <item>Strava</item>
+        <item>Polar</item>
+    </string-array>
+
+    <string-array name="style">
+        <item>light</item>
+        <item>dark</item>
+        <item>transparent</item>
+        <item>strava</item>
+        <item>polar</item>
+    </string-array>
+
+</resources>
