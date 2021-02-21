@@ -1,10 +1,14 @@
 package com.example.weeklymileagewidget
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
 import androidx.appcompat.app.AppCompatActivity
-import androidx.preference.*
+import androidx.preference.EditTextPreference
+import androidx.preference.ListPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
 import com.rarepebble.colorpicker.ColorPreference
 
 
@@ -56,6 +60,24 @@ class MySettingsFragment : PreferenceFragmentCompat() {
         findPreference<ColorPreference>("color_last_week")?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener{ _, _ -> colorChanged()}
         findPreference<ColorPreference>("color_x_axis")?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener{ _, _ -> colorChanged()}
         findPreference<ColorPreference>("color_goal")?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener{ _, _ -> colorChanged()}
+
+        findPreference<Preference>("strava_connect")?.onPreferenceClickListener = Preference.OnPreferenceClickListener{ _ -> connectStrava()}
+
+    }
+
+    private fun connectStrava():Boolean {
+        val intentUri = Uri.parse("https://www.strava.com/oauth/authorize")
+            .buildUpon()
+            .appendQueryParameter("client_id", BuildConfig.STRAVA_KEY)
+            .appendQueryParameter("redirect_uri", BuildConfig.STRAVA_CALLBACK)
+            .appendQueryParameter("response_type", "code")
+            .appendQueryParameter("approval_prompt", "auto")
+            .appendQueryParameter("scope", "activity:read")
+            .build()
+
+        val intent = Intent(Intent.ACTION_VIEW, intentUri)
+        startActivity(intent)
+        return true
     }
 
     private fun colorChanged(): Boolean{
@@ -116,8 +138,6 @@ class MySettingsFragment : PreferenceFragmentCompat() {
             (preference).showDialog(this, 0)
         } else super.onDisplayPreferenceDialog(preference)
     }
-
-
 }
 
 class MainActivity : AppCompatActivity() {
