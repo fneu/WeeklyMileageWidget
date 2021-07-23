@@ -9,12 +9,31 @@
 
         <Preference
             android:key="strava_connect"
-            android:title="Connect Strava Account"/>
+            android:title="Connect Strava Account"
+            app:isPreferenceVisible ="true"/>
 
         <Preference
             android:key="strava_disconnect"
-            android:title="Disconnect"
-            app:isPreferenceVisible ="false"/>
+            android:title="Disconnect Strava"
+            app:isPreferenceVisible ="true"/>
+
+        <EditTextPreference
+            android:key="strava_access_token"
+            android:title="Access Token"
+            android:defaultValue=""
+            app:isPreferenceVisible ="true"/>
+
+        <EditTextPreference
+            android:key="strava_refresh_token"
+            android:title="Refresh Token"
+            android:defaultValue=""
+            app:isPreferenceVisible ="true"/>
+
+        <EditTextPreference
+            android:key="strava_expires_at"
+            android:title="Expires At"
+            android:defaultValue="0"
+            app:isPreferenceVisible ="true"/>
     </PreferenceCategory>
 
     <PreferenceCategory

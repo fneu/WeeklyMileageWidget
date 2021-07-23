@@ -1,9 +1,11 @@
 package com.example.weeklymileagewidget
+
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
@@ -38,6 +40,27 @@ class MySettingsFragment : PreferenceFragmentCompat() {
             ListPreference.SimpleSummaryProvider.getInstance()
         findPreference<ListPreference>("style")?.summaryProvider =
             ListPreference.SimpleSummaryProvider.getInstance()
+        findPreference<EditTextPreference>("strava_access_token")?.summaryProvider =
+            EditTextPreference.SimpleSummaryProvider.getInstance()
+        findPreference<EditTextPreference>("strava_refresh_token")?.summaryProvider =
+            EditTextPreference.SimpleSummaryProvider.getInstance()
+
+        val expiresPreference = findPreference<EditTextPreference>("strava_expires_at")
+        expiresPreference?.summaryProvider =
+            EditTextPreference.SimpleSummaryProvider.getInstance()
+        expiresPreference?.setOnBindEditTextListener { editText ->
+            editText.inputType = InputType.TYPE_CLASS_NUMBER
+        }
+
+        // logic around strava account
+        val accessTokenPref = findPreference<EditTextPreference>("strava_access_token")
+        accessTokenPref?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener{ _, v -> accessTokenChanged(
+            v
+        )}
+        if (accessTokenPref != null) {
+            accessTokenChanged(accessTokenPref.text)
+        }
+
 
         val goalPreference = findPreference<EditTextPreference>("goal")
         goalPreference?.summaryProvider =
@@ -62,6 +85,7 @@ class MySettingsFragment : PreferenceFragmentCompat() {
         findPreference<ColorPreference>("color_goal")?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener{ _, _ -> colorChanged()}
 
         findPreference<Preference>("strava_connect")?.onPreferenceClickListener = Preference.OnPreferenceClickListener{ _ -> connectStrava()}
+        findPreference<Preference>("strava_disconnect")?.onPreferenceClickListener = Preference.OnPreferenceClickListener{ _ -> disconnectStrava()}
 
     }
 
@@ -77,6 +101,27 @@ class MySettingsFragment : PreferenceFragmentCompat() {
 
         val intent = Intent(Intent.ACTION_VIEW, intentUri)
         startActivity(intent)
+        return true
+    }
+
+    private fun disconnectStrava():Boolean {
+        val access = findPreference<EditTextPreference>("strava_access_token")
+        val refresh = findPreference<EditTextPreference>("strava_refresh_token")
+        val expires = findPreference<EditTextPreference>("strava_expires_at")
+        access!!.text=""
+        refresh!!.text=""
+        expires!!.text="0"
+        accessTokenChanged("")
+        return true
+    }
+
+    private fun accessTokenChanged(v: Any): Boolean{
+        val connect = findPreference<Preference>("strava_connect")
+        val disconnect = findPreference<Preference>("strava_disconnect")
+
+        connect?.isVisible = (v == "")
+        disconnect?.isVisible = (v != "")
+
         return true
     }
 
@@ -143,6 +188,15 @@ class MySettingsFragment : PreferenceFragmentCompat() {
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.settings_container, MySettingsFragment())
+            .commit()
+    }
+
+    override fun onResume() {
+        super.onResume()
         setContentView(R.layout.activity_main)
         supportFragmentManager
             .beginTransaction()

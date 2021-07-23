@@ -53,4 +53,5 @@ dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
     implementation "androidx.preference:preference-ktx:$preference_version"
     implementation 'com.rarepebble:colorpicker:3.0.1'
+    implementation("com.android.volley:volley:1.2.0")
 }

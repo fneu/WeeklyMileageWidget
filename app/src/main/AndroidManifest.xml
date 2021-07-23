@@ -18,8 +18,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <action android:name="android.intent.action.VIEW" />
                 <data
-                    android:host="com.example.weeklymileagewidget"
-                    android:scheme="wmw" />
+                    android:host="weeklymileagewidget.com"
+                    android:scheme="weeklymileagewidget" />
             </intent-filter>
         </activity>
 
