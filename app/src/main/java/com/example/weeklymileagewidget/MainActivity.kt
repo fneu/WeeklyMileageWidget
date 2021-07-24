@@ -90,7 +90,7 @@ class MySettingsFragment : PreferenceFragmentCompat() {
     }
 
     private fun connectStrava():Boolean {
-        val intentUri = Uri.parse("https://www.strava.com/oauth/authorize")
+        val intentUri = Uri.parse("https://www.strava.com/oauth/mobile/authorize")
             .buildUpon()
             .appendQueryParameter("client_id", BuildConfig.STRAVA_KEY)
             .appendQueryParameter("redirect_uri", BuildConfig.STRAVA_CALLBACK)

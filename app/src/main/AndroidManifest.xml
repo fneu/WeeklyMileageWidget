@@ -15,11 +15,15 @@
             android:name=".AuthActivity"
             android:parentActivityName=".MainActivity">
             <intent-filter>
-                <category android:name="android.intent.category.BROWSABLE" />
                 <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
                 <data
-                    android:host="weeklymileagewidget.com"
-                    android:scheme="weeklymileagewidget" />
+                    android:scheme="http"
+                    android:host="weeklymileagewidget.neuschmidt.de"
+                    android:pathPattern="/auth" />
             </intent-filter>
         </activity>
 

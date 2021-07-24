@@ -25,7 +25,7 @@ class AuthActivity : AppCompatActivity() {
     {
         super.onResume()
         val uri = this.intent?.data
-        if (uri != null && uri.toString().startsWith("weeklymileagewidget://weeklymileagewidget.com")) {
+        if (uri != null && uri.toString().startsWith("http://weeklymileagewidget.neuschmidt.de/auth")) {
             // return early in case of user abort
             val error = uri.getQueryParameter("error")
             if( error == "access_denied"){
