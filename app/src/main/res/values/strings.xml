@@ -18,4 +18,5 @@
     <string name="miles">Meilen</string>
     <string name="kilometers">Kilometer</string>
     <string name="updateIntentString">UPDATE_MILEAGE_WIDGET</string>
+    <string name="strava_msg">Please open the app to connect your strava account</string>
 </resources>

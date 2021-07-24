@@ -21,19 +21,19 @@
             android:key="strava_access_token"
             android:title="Access Token"
             android:defaultValue=""
-            app:isPreferenceVisible ="true"/>
+            app:isPreferenceVisible ="false"/>
 
         <EditTextPreference
             android:key="strava_refresh_token"
             android:title="Refresh Token"
             android:defaultValue=""
-            app:isPreferenceVisible ="true"/>
+            app:isPreferenceVisible ="false"/>
 
         <EditTextPreference
             android:key="strava_expires_at"
             android:title="Expires At"
             android:defaultValue="0"
-            app:isPreferenceVisible ="true"/>
+            app:isPreferenceVisible ="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -45,7 +45,8 @@
             android:title="Unit"
             android:entries="@array/unitAlias"
             android:entryValues="@array/unit"
-            android:defaultValue="kilometers"/>
+            android:defaultValue="kilometers"
+            app:isPreferenceVisible ="false"/>
 
         <EditTextPreference
             android:key="goal"

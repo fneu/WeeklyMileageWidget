@@ -10,5 +10,16 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:scaleType="centerInside" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="10mm"
+        android:layout_marginRight="10mm"
+        android:text="@string/strava_msg"
+        android:textSize="18sp" />
+
 </FrameLayout>
 

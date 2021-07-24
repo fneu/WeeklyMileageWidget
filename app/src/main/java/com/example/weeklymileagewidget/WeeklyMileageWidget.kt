@@ -1,5 +1,6 @@
 package com.example.weeklymileagewidget
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -12,9 +13,18 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Color.argb
+import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.RemoteViews
+import android.widget.TextView
 import androidx.preference.PreferenceManager
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.Response
+import com.android.volley.toolbox.JsonArrayRequest
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.LimitLine
@@ -25,7 +35,10 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.utils.Utils
+import org.json.JSONObject
+import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 // convert widget size in dp to bitmap px
@@ -98,13 +111,174 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
+
         val prefs: SharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(context)
+
+        // check and optionally refresh access token
+        val requestQueue: RequestQueue = Volley.newRequestQueue(context)
+
+        when {
+            prefs.getString("strava_access_token", "") == "" -> {
+                plotOnlyStravaMessage(prefs, context, appWidgetManager, appWidgetId)
+            }
+            prefs.getString("strava_expires_at", "0")!!.toInt() < TimeUnit.MILLISECONDS.toSeconds(
+                System.currentTimeMillis()
+            ) -> {
+
+                val jsonObjectRequest = object : JsonObjectRequest(
+                    Request.Method.POST,
+                    "https://www.strava.com/oauth/token",
+                    null,
+                    Response.Listener { response ->
+                        val token_type = response["token_type"]
+                        val expires_at = response["expires_at"]
+                        val expires_in = response["expires_in"]
+                        val refresh_token = response["refresh_token"]
+                        val access_token = response["access_token"]
+
+                        val editor = prefs.edit()
+                        editor.putString("strava_access_token", access_token.toString())
+                        editor.putString("strava_refresh_token", refresh_token.toString())
+                        editor.putString("strava_expires_at", expires_at.toString())
+                        editor.commit()
+
+                        fetchDataAndPlot(
+                            prefs,
+                            context,
+                            appWidgetManager,
+                            appWidgetId,
+                            requestQueue
+                        )
+                    },
+                    Response.ErrorListener { // Do something when error occurred
+
+                    }
+                ) {
+                    override fun getBody(): ByteArray {
+                        val parameters = HashMap<String, String>()
+                        parameters["client_id"] = BuildConfig.STRAVA_KEY
+                        parameters["client_secret"] = BuildConfig.STRAVA_SECRET
+                        parameters["refresh_token"] = prefs.getString("strava_refresh_token", "").toString()
+                        parameters["grant_type"] = "refresh_token"
+
+                        return JSONObject(parameters.toString()).toString().toByteArray()
+                    }
+                }
+                requestQueue.add(jsonObjectRequest)
+
+            }
+            else -> {
+                fetchDataAndPlot(prefs, context, appWidgetManager, appWidgetId, requestQueue)
+            }
+        }
+
+    }
+
+    private fun fetchDataAndPlot(
+        prefs: SharedPreferences,
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        requestQueue: RequestQueue
+    ){
+        val url = Uri.parse("https://www.strava.com/api/v3/athlete/activities")
+            .buildUpon()
+            .appendQueryParameter("per_page", "100")
+            .build()
+            .toString()
+
+        val jsonArrayRequest = @SuppressLint("SimpleDateFormat")
+        object : JsonArrayRequest(
+            Request.Method.GET,
+            url,
+            null,
+            Response.Listener { response ->
+                val format = SimpleDateFormat("yyyy-MM-dd'T'kk:mm:ss'Z'")  // 2018-04-30T12:35:51Z"
+                format.timeZone = TimeZone.getTimeZone("UTC");
+
+                val cToday = Calendar.getInstance()
+                val dayOfWeek = cToday.get(Calendar.DAY_OF_WEEK)
+                //calculate time stuffs
+                val c = Calendar.getInstance()
+                c.firstDayOfWeek = Calendar.MONDAY  // make monday first of week
+                c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) // set date to monday
+                c.add(Calendar.DATE, -7) // monday last week
+
+                val weekDayToWeekLengthMap = listOf(0, 7, 1, 2, 3, 4, 5, 6)
+                val lengthOfThisWeek = weekDayToWeekLengthMap[dayOfWeek]
+
+                val list1 = DoubleArray(7)
+                val list2 = DoubleArray(lengthOfThisWeek)
+
+                c.add(Calendar.DATE, -1) // go one back so we can advance in each iteration
+                for (i in 0..6) {
+                    c.add(Calendar.DATE, 1) // next day
+                    val dateOfTheDay = format.format(c.time).slice(0..9)
+                    for (ii in 0 until response.length()) {
+                        val activity = response.getJSONObject(ii)
+                        if (activity.getString("type") != "Run") {
+                            continue
+                        }
+
+                        val dist = activity.getDouble("distance") / 1000
+                        val date = activity.getString("start_date_local").slice(0..9)
+                        if (date == dateOfTheDay) {
+                            for (iii in i until list1.size) {
+                                list1[iii] += dist
+                            }
+                        }
+                    }
+                }
+
+                for (i in list2.indices) {
+                    c.add(Calendar.DATE, 1) // next day
+                    val dateOfTheDay = format.format(c.time).slice(0..9)
+                    for (ii in 0 until response.length()) {
+                        val activity = response.getJSONObject(ii)
+                        if (activity.getString("type") != "Run") {
+                            continue
+                        }
+
+                        val dist = activity.getDouble("distance") / 1000
+                        val date = activity.getString("start_date_local").slice(0..9)
+                        if (date == dateOfTheDay) {
+                            for (iii in i until list2.size) {
+                                list2[iii] += dist
+                            }
+                        }
+                    }
+                }
+
+                plotStuff(prefs, context, appWidgetManager, appWidgetId, list1, list2)
+
+            },
+            Response.ErrorListener { // Do something when error occurred
+                val e = it
+            }
+        ) {
+            override fun getHeaders(): MutableMap<String, String> {
+                val headers = HashMap<String, String>()
+                val token = prefs.getString("strava_access_token", "").toString()
+                headers["Authorization"] = "Bearer $token"
+                return headers
+            }
+        }
+        requestQueue.add(jsonArrayRequest)
+    }
+
+    private fun plotStuff(
+        prefs: SharedPreferences,
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        list1: DoubleArray,
+        list2: DoubleArray
+    ){
         val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-        val h = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT).toPx()
+        val h = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).toPx()
         val w = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toPx()
-        val list1 = listOf(4.65, 10.4, 20.41, 29.94, 38.45, 47.56, 56.23)
-        val list2 = listOf(6.25, 13.84, 15.87, 30.0, 33.0, 49.61)
+
 
         val chart = LineChart(context)
 
@@ -149,13 +323,15 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         val circleColorList = MutableList(list2.size - 1) {Color.TRANSPARENT}
 
         // alpha halved, others stay the same
-        circleColorList.add(argb(Color.alpha(prefs.getInt("color_this_week", 0))/2,
-            Color.red(prefs.getInt("color_this_week", 0)),
-            Color.green(prefs.getInt("color_this_week", 0)),
-            Color.blue(prefs.getInt("color_this_week", 0))))
+        circleColorList.add(
+            argb(
+                Color.alpha(prefs.getInt("color_this_week", 0)) / 2,
+                Color.red(prefs.getInt("color_this_week", 0)),
+                Color.green(prefs.getInt("color_this_week", 0)),
+                Color.blue(prefs.getInt("color_this_week", 0))
+            )
+        )
         dataSet2.circleColors = circleColorList
-
-
 
         val lineData = LineData(dataSet1, dataSet2)
         chart.data = lineData
@@ -175,21 +351,32 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         chart.axisLeft.setDrawGridLines(false)
         chart.axisLeft.setDrawAxisLine(false)
         chart.axisLeft.axisMinimum = 0f
-        val maxVal = (list1+list2+listOf(prefs.getString("goal", "30")!!.toDouble())).max()!!.toFloat()
+
+        val hasGoal = (prefs.getString("goal", "") != "")
+
+        val maxVal: Float = if (hasGoal) {
+            (list1 + list2 + listOf(prefs.getString("goal", "30")!!.toDouble())).max()!!
+                .toFloat()
+        } else {
+            (list1 + list2).max()!!.toFloat()
+        }
         chart.axisLeft.axisMaximum = maxVal
         chart.axisLeft.setDrawLabels(false)
         chart.axisLeft.setDrawZeroLine(true)
         chart.axisLeft.zeroLineColor = prefs.getInt("color_x_axis", 0)
         chart.axisLeft.yOffset
 
-        val ll = LimitLine(prefs.getString("goal", "30")!!.toFloat(), prefs.getString("goal", "30"))
-        ll.lineColor = prefs.getInt("color_goal", 0)
-        ll.lineWidth = 2f
-        ll.textColor = prefs.getInt("color_goal", 0)
-        ll.enableDashedLine(25f, 15f, 0f)
-        ll.labelPosition = LimitLine.LimitLabelPosition.LEFT_BOTTOM
-        ll.textSize = 16f
-        chart.axisLeft.addLimitLine(ll)
+        if (hasGoal) {
+            val ll =
+                LimitLine(prefs.getString("goal", "30")!!.toFloat(), prefs.getString("goal", "30"))
+            ll.lineColor = prefs.getInt("color_goal", 0)
+            ll.lineWidth = 2f
+            ll.textColor = prefs.getInt("color_goal", 0)
+            ll.enableDashedLine(25f, 15f, 0f)
+            ll.labelPosition = LimitLine.LimitLabelPosition.LEFT_BOTTOM
+            ll.textSize = 16f
+            chart.axisLeft.addLimitLine(ll)
+        }
         chart.legend.isEnabled = false
         chart.description.isEnabled = false
 
@@ -250,6 +437,65 @@ class WeeklyMileageWidget : AppWidgetProvider() {
             )
 
             views.setImageViewBitmap(R.id.imgView, returnedBitmap)
+
+            views.setViewVisibility(R.id.textView, View.GONE)
+
+            // Instruct the widget manager to update the widget
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+    }
+
+    private fun plotOnlyStravaMessage(
+        prefs: SharedPreferences,
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int
+    ) {
+        val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+        val h = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).toPx()
+        val w = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).toPx()
+
+        if (w>0) {
+            // chart.getChartBitmap() returns RGB_565 but we need ARGB_8888
+            // Define a bitmap with the same size as the view
+            val returnedBitmap =
+                Bitmap.createBitmap(
+                    w,
+                    h,
+                    Bitmap.Config.ARGB_8888
+                )
+
+            val canvas = Canvas(returnedBitmap)
+            canvas.drawColor(prefs.getInt("color_background", 0))
+
+            val views =
+                RemoteViews(
+                    context.packageName,
+                    R.layout.weekly_mileage_widget
+                )
+
+            val intentUpdate = Intent(context, WeeklyMileageWidget::class.java)
+            intentUpdate.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+
+            val idArray = intArrayOf(appWidgetId)
+            intentUpdate.putExtra(
+                AppWidgetManager.EXTRA_APPWIDGET_IDS,
+                idArray
+            )
+
+            val pendingUpdate = PendingIntent.getBroadcast(
+                context, appWidgetId, intentUpdate,
+                PendingIntent.FLAG_UPDATE_CURRENT
+            )
+
+            views.setOnClickPendingIntent(
+                R.id.widget_layout_id,
+                pendingUpdate
+            )
+
+            views.setImageViewBitmap(R.id.imgView, returnedBitmap)
+
+            views.setViewVisibility(R.id.textView, View.VISIBLE)
 
             // Instruct the widget manager to update the widget
             appWidgetManager.updateAppWidget(appWidgetId, views)
