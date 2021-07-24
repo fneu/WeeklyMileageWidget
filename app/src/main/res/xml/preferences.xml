@@ -9,12 +9,12 @@
 
         <Preference
             android:key="strava_connect"
-            android:title="Connect Strava Account"
+            android:title="@string/strava_connect"
             app:isPreferenceVisible ="true"/>
 
         <Preference
             android:key="strava_disconnect"
-            android:title="Disconnect Strava"
+            android:title="@string/strava_disconnect"
             app:isPreferenceVisible ="true"/>
 
         <EditTextPreference
@@ -38,61 +38,74 @@
 
     <PreferenceCategory
         android:key="data_category"
-        android:title="Values">
-
-        <ListPreference
-            android:key="units"
-            android:title="Unit"
-            android:entries="@array/unitAlias"
-            android:entryValues="@array/unit"
-            android:defaultValue="kilometers"
-            app:isPreferenceVisible ="false"/>
+        android:title="@string/values">
 
         <EditTextPreference
             android:key="goal"
-            android:title="Goal Volume"
+            android:title="@string/goal_volume"
             app:defaultValue="30"/>
+
+        <ListPreference
+            android:key="activities"
+            android:title="@string/activities"
+            android:entries="@array/activitiesAlias"
+            android:entryValues="@array/activities"
+            android:defaultValue="runs"/>
+
+        <ListPreference
+            android:key="units"
+            android:title="@string/units"
+            android:entries="@array/unitAlias"
+            android:entryValues="@array/unit"
+            android:defaultValue="kilometers"/>
+
+        <ListPreference
+            android:key="weekStart"
+            android:title="@string/weekStart"
+            android:entries="@array/weekStartAlias"
+            android:entryValues="@array/weekStart"
+            android:defaultValue="monday"/>
 
     </PreferenceCategory>
 
     <PreferenceCategory
         android:key="colors_category"
-        android:title="Colors">
+        android:title="@string/colors">
 
         <ListPreference
             android:key="style"
-            android:title="Preset styles"
+            android:title="@string/presets"
             android:entries="@array/styleAlias"
             android:entryValues="@array/style"
             />
 
         <com.rarepebble.colorpicker.ColorPreference
             android:key="color_background"
-            android:title="Background"
+            android:title="@string/background_color"
             android:defaultValue="#00000000"
             />
 
         <com.rarepebble.colorpicker.ColorPreference
             android:key="color_this_week"
-            android:title="Current week"
+            android:title="@string/current_week_color"
             android:defaultValue="#ffffffff"
             />
 
         <com.rarepebble.colorpicker.ColorPreference
             android:key="color_last_week"
-            android:title="Last week"
+            android:title="@string/last_week_color"
             android:defaultValue="#ffa8a8a8"
             />
 
         <com.rarepebble.colorpicker.ColorPreference
             android:key="color_x_axis"
-            android:title="X-Axis labels and zero line"
+            android:title="@string/x_and_zero_color"
             android:defaultValue="#ffffffff"
             />
 
         <com.rarepebble.colorpicker.ColorPreference
             android:key="color_goal"
-            android:title="Mileage goal"
+            android:title="@string/goal_volume"
             android:defaultValue="#64ffffff"
             />
     </PreferenceCategory>

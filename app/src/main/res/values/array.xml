@@ -10,12 +10,34 @@
         <item>kilometers</item>
     </string-array>
 
+    <string-array name="activitiesAlias">
+        <item>@string/runs</item>
+        <item>@string/rides</item>
+        <item>@string/all</item>
+    </string-array>
+
+    <string-array name="activities">
+        <item>runs</item>
+        <item>rides</item>
+        <item>all</item>
+    </string-array>
+
+    <string-array name="weekStartAlias">
+        <item>@string/monday</item>
+        <item>@string/sunday</item>
+    </string-array>
+
+    <string-array name="weekStart">
+        <item>monday</item>
+        <item>sunday</item>
+    </string-array>
+
     <string-array name="styleAlias">
-        <item>Light</item>
-        <item>Dark</item>
-        <item>Minimal white</item>
-        <item>Strava</item>
-        <item>Polar</item>
+        <item>@string/light</item>
+        <item>@string/dark</item>
+        <item>@string/transparent</item>
+        <item>@string/strava</item>
+        <item>@string/polar</item>
     </string-array>
 
     <string-array name="style">
@@ -25,5 +47,4 @@
         <item>strava</item>
         <item>polar</item>
     </string-array>
-
 </resources>

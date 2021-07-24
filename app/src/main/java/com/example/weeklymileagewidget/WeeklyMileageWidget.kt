@@ -44,16 +44,29 @@ import java.util.concurrent.TimeUnit
 // convert widget size in dp to bitmap px
 fun Int.toPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()
 
-class XAxisWeekFormatter(context: Context) : ValueFormatter() {
-    private val days = arrayOf(
-        context.getString(R.string.letter_monday),
-        context.getString(R.string.letter_tuesday),
-        context.getString(R.string.letter_wednesday),
-        context.getString(R.string.letter_thursday),
-        context.getString(R.string.letter_friday),
-        context.getString(R.string.letter_saturday),
-        context.getString(R.string.letter_sunday)
-    )
+class XAxisWeekFormatter(context: Context, prefs: SharedPreferences) : ValueFormatter() {
+    private val days = if (prefs.getString("weekStart", "monday") == "sunday")
+    {
+        arrayOf(
+            context.getString(R.string.letter_sunday),
+            context.getString(R.string.letter_monday),
+            context.getString(R.string.letter_tuesday),
+            context.getString(R.string.letter_wednesday),
+            context.getString(R.string.letter_thursday),
+            context.getString(R.string.letter_friday),
+            context.getString(R.string.letter_saturday)
+        )
+    } else {
+        arrayOf(
+            context.getString(R.string.letter_monday),
+            context.getString(R.string.letter_tuesday),
+            context.getString(R.string.letter_wednesday),
+            context.getString(R.string.letter_thursday),
+            context.getString(R.string.letter_friday),
+            context.getString(R.string.letter_saturday),
+            context.getString(R.string.letter_sunday)
+        )
+    }
 
     override fun getAxisLabel(value: Float, axis: AxisBase?): String {
         return days.getOrNull(value.toInt()) ?: value.toString()
@@ -195,17 +208,27 @@ class WeeklyMileageWidget : AppWidgetProvider() {
             null,
             Response.Listener { response ->
                 val format = SimpleDateFormat("yyyy-MM-dd'T'kk:mm:ss'Z'")  // 2018-04-30T12:35:51Z"
-                format.timeZone = TimeZone.getTimeZone("UTC");
+                //format.timeZone = TimeZone.getTimeZone("UTC");
 
                 val cToday = Calendar.getInstance()
                 val dayOfWeek = cToday.get(Calendar.DAY_OF_WEEK)
                 //calculate time stuffs
                 val c = Calendar.getInstance()
-                c.firstDayOfWeek = Calendar.MONDAY  // make monday first of week
-                c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) // set date to monday
-                c.add(Calendar.DATE, -7) // monday last week
+                if (prefs.getString("weekStart", "monday") == "sunday") {
+                    c.firstDayOfWeek = Calendar.SUNDAY  // make sunday first of week
+                    c.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY) // set date to sunday this week
+                } else {
+                    c.firstDayOfWeek = Calendar.MONDAY  // make monday first of week
+                    c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) // set date to monday this week
+                }
+                c.add(Calendar.DATE, -7) // go to previous week
 
-                val weekDayToWeekLengthMap = listOf(0, 7, 1, 2, 3, 4, 5, 6)
+                val xxx = prefs.getString("weekStart", "monday")
+                val weekDayToWeekLengthMap = if (prefs.getString("weekStart", "monday") == "sunday") {
+                    listOf(0, 1, 2, 3, 4, 5, 6, 7)
+                } else {
+                    listOf(0, 7, 1, 2, 3, 4, 5, 6)
+                }
                 val lengthOfThisWeek = weekDayToWeekLengthMap[dayOfWeek]
 
                 val list1 = DoubleArray(7)
@@ -217,11 +240,18 @@ class WeeklyMileageWidget : AppWidgetProvider() {
                     val dateOfTheDay = format.format(c.time).slice(0..9)
                     for (ii in 0 until response.length()) {
                         val activity = response.getJSONObject(ii)
-                        if (activity.getString("type") != "Run") {
+                        if (prefs.getString("activities", "all") == "runs" && activity.getString("type") !in setOf("Run", "VirtualRun")) {
+                            continue
+                        }
+                        if (prefs.getString("activities", "all") == "rides" && activity.getString("type") !in setOf("Ride", "VirtualRide")) {
                             continue
                         }
 
-                        val dist = activity.getDouble("distance") / 1000
+                        val dist = if (prefs.getString("units", "kilometers") == "miles") {
+                            activity.getDouble("distance") / 1609.34
+                        } else {
+                            activity.getDouble("distance") / 1000
+                        }
                         val date = activity.getString("start_date_local").slice(0..9)
                         if (date == dateOfTheDay) {
                             for (iii in i until list1.size) {
@@ -236,11 +266,18 @@ class WeeklyMileageWidget : AppWidgetProvider() {
                     val dateOfTheDay = format.format(c.time).slice(0..9)
                     for (ii in 0 until response.length()) {
                         val activity = response.getJSONObject(ii)
-                        if (activity.getString("type") != "Run") {
+                        if (prefs.getString("activities", "all") == "runs" && activity.getString("type") !in setOf("Run", "VirtualRun")) {
+                            continue
+                        }
+                        if (prefs.getString("activities", "all") == "rides" && activity.getString("type") !in setOf("Ride", "VirtualRide")) {
                             continue
                         }
 
-                        val dist = activity.getDouble("distance") / 1000
+                        val dist = if (prefs.getString("units", "kilometers") == "miles") {
+                            activity.getDouble("distance") / 1609.34
+                        } else {
+                            activity.getDouble("distance") / 1000
+                        }
                         val date = activity.getString("start_date_local").slice(0..9)
                         if (date == dateOfTheDay) {
                             for (iii in i until list2.size) {
@@ -338,7 +375,7 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         chart.layout(0, 0, w, h)
         chart.setBackgroundColor(prefs.getInt("color_background", 0))
         chart.setDrawGridBackground(false)
-        chart.xAxis.valueFormatter = XAxisWeekFormatter(context)
+        chart.xAxis.valueFormatter = XAxisWeekFormatter(context, prefs)
         chart.xAxis.setDrawGridLines(false)
         chart.xAxis.setDrawAxisLine(false)
         chart.xAxis.textColor = prefs.getInt("color_x_axis", 0)

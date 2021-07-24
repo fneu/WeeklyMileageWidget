@@ -36,7 +36,11 @@ class MySettingsFragment : PreferenceFragmentCompat() {
         findPreference<ColorPreference>("color_goal")?.summaryProvider =
             colorSummaryProvider
 
+        findPreference<ListPreference>("activities")?.summaryProvider =
+            ListPreference.SimpleSummaryProvider.getInstance()
         findPreference<ListPreference>("units")?.summaryProvider =
+            ListPreference.SimpleSummaryProvider.getInstance()
+        findPreference<ListPreference>("weekStart")?.summaryProvider =
             ListPreference.SimpleSummaryProvider.getInstance()
         findPreference<ListPreference>("style")?.summaryProvider =
             ListPreference.SimpleSummaryProvider.getInstance()

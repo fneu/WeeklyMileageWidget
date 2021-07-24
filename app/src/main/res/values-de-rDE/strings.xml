@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WeeklyMileageWidget</string>
+    <string name="letter_monday">M</string>
+    <string name="letter_tuesday">D</string>
+    <string name="letter_wednesday">M</string>
+    <string name="letter_thursday">D</string>
+    <string name="letter_friday">F</string>
+    <string name="letter_saturday">S</string>
+    <string name="letter_sunday">S</string>
+    <string name="updateIntentString">UPDATE_MILEAGE_WIDGET</string>
+    <string name="strava_msg">Bitte öffne die App und verbinde deinen Strava Account</string>
+    <string name="miles">Meilen</string>
+    <string name="kilometers">Kilometer</string>
+    <string name="monday">Montag</string>
+    <string name="sunday">Sonntag</string>
+    <string name="light">Hell</string>
+    <string name="dark">Dunkel</string>
+    <string name="transparent">Transparent</string>
+    <string name="strava">Strava</string>
+    <string name="polar">Polar</string>
+    <string name="runs">Läufe</string>
+    <string name="rides">Radfahrten</string>
+    <string name="all">Alle Aktivitäten</string>
+    <string name="strava_connect">Strava Konto verbinden</string>
+    <string name="strava_disconnect">Strava trennen</string>
+    <string name="values">Werte</string>
+    <string name="goal_volume">Wochenziel</string>
+    <string name="activities">Aktivitäten</string>
+    <string name="units">Einheiten</string>
+    <string name="weekStart">Erster Tag der Woche</string>
+    <string name="colors">Farben</string>
+    <string name="presets">Voreingestellte Stile</string>
+    <string name="background_color">Hintergrund</string>
+    <string name="current_week_color">Diese Woche</string>
+    <string name="last_week_color">Letzte Woche</string>
+    <string name="x_and_zero_color">Achsenbeschriftung</string>
+</resources>
