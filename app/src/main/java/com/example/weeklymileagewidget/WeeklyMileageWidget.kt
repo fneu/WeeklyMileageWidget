@@ -195,9 +195,27 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         appWidgetId: Int,
         requestQueue: RequestQueue
     ){
+
+        val cStart = Calendar.getInstance()
+        if (prefs.getString("weekStart", "monday") == "sunday") {
+            cStart.firstDayOfWeek = Calendar.SUNDAY  // make sunday first of week
+            cStart.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY) // set date to sunday this week
+        } else {
+            cStart.firstDayOfWeek = Calendar.MONDAY  // make monday first of week
+            cStart.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) // set date to monday this week
+        }
+        cStart.set(Calendar.HOUR, 0)
+        cStart.set(Calendar.MINUTE, 0)
+        cStart.set(Calendar.SECOND, 0)
+        cStart.set(Calendar.MILLISECOND, 0)
+        cStart.add(Calendar.DATE, -7) // go to previous week
+        cStart.add(Calendar.DATE, -1) // extra day to prevent off-by-ones
+        val earliestPossibleActivity = TimeUnit.MILLISECONDS.toSeconds(cStart.timeInMillis)
+
         val url = Uri.parse("https://www.strava.com/api/v3/athlete/activities")
             .buildUpon()
             .appendQueryParameter("per_page", "100")
+            .appendQueryParameter("after", earliestPossibleActivity.toString())
             .build()
             .toString()
 
