@@ -24,14 +24,17 @@
     <string name="strava_connect">Connect Strava Account</string>
     <string name="strava_disconnect">Disconnect Strava</string>
     <string name="values">Values</string>
-    <string name="goal_volume">Weekly Goal</string>
+    <string name="goal_volume">Distance Goal</string>
     <string name="activities">Activities</string>
     <string name="units">Units</string>
     <string name="weekStart">First Day of the Week</string>
     <string name="colors">Colors</string>
     <string name="presets">Preset Styles</string>
     <string name="background_color">Background</string>
-    <string name="current_week_color">Current Week</string>
-    <string name="last_week_color">Last Week</string>
+    <string name="current_week_color">Current Week / Month</string>
+    <string name="last_week_color">Last Week / Month</string>
     <string name="x_and_zero_color">Axis Labels</string>
+    <string name="week">Week</string>
+    <string name="month">Month</string>
+    <string name="timeFrame">Time Frame</string>
 </resources>

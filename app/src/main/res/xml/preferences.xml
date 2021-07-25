@@ -60,6 +60,13 @@
             android:defaultValue="kilometers"/>
 
         <ListPreference
+            android:key="timeFrame"
+            android:title="@string/timeFrame"
+            android:entries="@array/timeFrameAlias"
+            android:entryValues="@array/timeFrame"
+            android:defaultValue="week"/>
+
+        <ListPreference
             android:key="weekStart"
             android:title="@string/weekStart"
             android:entries="@array/weekStartAlias"
@@ -77,36 +84,37 @@
             android:title="@string/presets"
             android:entries="@array/styleAlias"
             android:entryValues="@array/style"
+            android:defaultValue="strava"/>
             />
 
         <com.rarepebble.colorpicker.ColorPreference
             android:key="color_background"
             android:title="@string/background_color"
-            android:defaultValue="#00000000"
+            android:defaultValue="#ffffffff"
             />
 
         <com.rarepebble.colorpicker.ColorPreference
             android:key="color_this_week"
             android:title="@string/current_week_color"
-            android:defaultValue="#ffffffff"
+            android:defaultValue="#fffc5200"
             />
 
         <com.rarepebble.colorpicker.ColorPreference
             android:key="color_last_week"
             android:title="@string/last_week_color"
-            android:defaultValue="#ffa8a8a8"
+            android:defaultValue="#ff555555"
             />
 
         <com.rarepebble.colorpicker.ColorPreference
             android:key="color_x_axis"
             android:title="@string/x_and_zero_color"
-            android:defaultValue="#ffffffff"
+            android:defaultValue="#ffaaaaaa"
             />
 
         <com.rarepebble.colorpicker.ColorPreference
             android:key="color_goal"
             android:title="@string/goal_volume"
-            android:defaultValue="#64ffffff"
+            android:defaultValue="#ffcccccc"
             />
     </PreferenceCategory>
 

@@ -40,6 +40,8 @@ class MySettingsFragment : PreferenceFragmentCompat() {
             ListPreference.SimpleSummaryProvider.getInstance()
         findPreference<ListPreference>("units")?.summaryProvider =
             ListPreference.SimpleSummaryProvider.getInstance()
+        findPreference<ListPreference>("timeFrame")?.summaryProvider =
+            ListPreference.SimpleSummaryProvider.getInstance()
         findPreference<ListPreference>("weekStart")?.summaryProvider =
             ListPreference.SimpleSummaryProvider.getInstance()
         findPreference<ListPreference>("style")?.summaryProvider =
@@ -72,6 +74,11 @@ class MySettingsFragment : PreferenceFragmentCompat() {
         goalPreference?.setOnBindEditTextListener { editText ->
             editText.inputType = InputType.TYPE_CLASS_NUMBER
         }
+
+        val tfpreference = findPreference<ListPreference>("timeFrame")
+        tfpreference?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener{ _, v -> timeFrameChanged(
+            v
+        )}
 
         // invalidate each other
         val preference = findPreference<ListPreference>("style")
@@ -126,6 +133,12 @@ class MySettingsFragment : PreferenceFragmentCompat() {
         connect?.isVisible = (v == "")
         disconnect?.isVisible = (v != "")
 
+        return true
+    }
+
+    private fun timeFrameChanged(v: Any): Boolean{
+        val style = findPreference<ListPreference>("weekStart")
+        style?.isVisible = (v.toString() == "week")
         return true
     }
 

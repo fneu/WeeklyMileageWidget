@@ -45,27 +45,37 @@ import java.util.concurrent.TimeUnit
 fun Int.toPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()
 
 class XAxisWeekFormatter(context: Context, prefs: SharedPreferences) : ValueFormatter() {
-    private val days = if (prefs.getString("weekStart", "monday") == "sunday")
-    {
-        arrayOf(
-            context.getString(R.string.letter_sunday),
-            context.getString(R.string.letter_monday),
-            context.getString(R.string.letter_tuesday),
-            context.getString(R.string.letter_wednesday),
-            context.getString(R.string.letter_thursday),
-            context.getString(R.string.letter_friday),
-            context.getString(R.string.letter_saturday)
-        )
-    } else {
-        arrayOf(
-            context.getString(R.string.letter_monday),
-            context.getString(R.string.letter_tuesday),
-            context.getString(R.string.letter_wednesday),
-            context.getString(R.string.letter_thursday),
-            context.getString(R.string.letter_friday),
-            context.getString(R.string.letter_saturday),
-            context.getString(R.string.letter_sunday)
-        )
+    private val days = when {
+        prefs.getString("timeFrame", "week") == "month" -> {
+            arrayOf(
+                "1", "2","3","4","5","6","7","8","9",
+                "10","11", "12","13","14","15","16","17","18","19",
+                "20","21", "22","23","24","25","26","27","28","29",
+                "30", "31"
+            )
+        }
+        prefs.getString("weekStart", "monday") == "sunday" -> {
+            arrayOf(
+                context.getString(R.string.letter_sunday),
+                context.getString(R.string.letter_monday),
+                context.getString(R.string.letter_tuesday),
+                context.getString(R.string.letter_wednesday),
+                context.getString(R.string.letter_thursday),
+                context.getString(R.string.letter_friday),
+                context.getString(R.string.letter_saturday)
+            )
+        }
+        else -> {
+            arrayOf(
+                context.getString(R.string.letter_monday),
+                context.getString(R.string.letter_tuesday),
+                context.getString(R.string.letter_wednesday),
+                context.getString(R.string.letter_thursday),
+                context.getString(R.string.letter_friday),
+                context.getString(R.string.letter_saturday),
+                context.getString(R.string.letter_sunday)
+            )
+        }
     }
 
     override fun getAxisLabel(value: Float, axis: AxisBase?): String {
@@ -188,6 +198,35 @@ class WeeklyMileageWidget : AppWidgetProvider() {
 
     }
 
+    private fun getEarliestDate(prefs: SharedPreferences): Long {
+        val cStart = Calendar.getInstance()
+        if (prefs.getString("timeFrame", "week") == "month") {
+            cStart.add(Calendar.MONTH, -1) // go back one month
+            cStart.set(Calendar.DAY_OF_MONTH, 1) // set date to first day of that month
+            cStart.set(Calendar.HOUR, 0)
+            cStart.set(Calendar.MINUTE, 0)
+            cStart.set(Calendar.SECOND, 0)
+            cStart.set(Calendar.MILLISECOND, 0)
+            cStart.add(Calendar.DATE, -1) // extra day to prevent off-by-ones
+            return TimeUnit.MILLISECONDS.toSeconds(cStart.timeInMillis)
+        } else {
+            if (prefs.getString("weekStart", "monday") == "sunday") {
+                cStart.firstDayOfWeek = Calendar.SUNDAY  // make sunday first of week
+                cStart.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY) // set date to sunday this week
+            } else {
+                cStart.firstDayOfWeek = Calendar.MONDAY  // make monday first of week
+                cStart.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) // set date to monday this week
+            }
+            cStart.set(Calendar.HOUR, 0)
+            cStart.set(Calendar.MINUTE, 0)
+            cStart.set(Calendar.SECOND, 0)
+            cStart.set(Calendar.MILLISECOND, 0)
+            cStart.add(Calendar.DATE, -7) // go to previous week
+            cStart.add(Calendar.DATE, -1) // extra day to prevent off-by-ones
+            return TimeUnit.MILLISECONDS.toSeconds(cStart.timeInMillis)
+        }
+    }
+
     private fun fetchDataAndPlot(
         prefs: SharedPreferences,
         context: Context,
@@ -196,22 +235,7 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         requestQueue: RequestQueue
     ){
 
-        val cStart = Calendar.getInstance()
-        if (prefs.getString("weekStart", "monday") == "sunday") {
-            cStart.firstDayOfWeek = Calendar.SUNDAY  // make sunday first of week
-            cStart.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY) // set date to sunday this week
-        } else {
-            cStart.firstDayOfWeek = Calendar.MONDAY  // make monday first of week
-            cStart.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) // set date to monday this week
-        }
-        cStart.set(Calendar.HOUR, 0)
-        cStart.set(Calendar.MINUTE, 0)
-        cStart.set(Calendar.SECOND, 0)
-        cStart.set(Calendar.MILLISECOND, 0)
-        cStart.add(Calendar.DATE, -7) // go to previous week
-        cStart.add(Calendar.DATE, -1) // extra day to prevent off-by-ones
-        val earliestPossibleActivity = TimeUnit.MILLISECONDS.toSeconds(cStart.timeInMillis)
-
+        val earliestPossibleActivity = getEarliestDate(prefs)
         val url = Uri.parse("https://www.strava.com/api/v3/athlete/activities")
             .buildUpon()
             .appendQueryParameter("per_page", "100")
@@ -232,16 +256,20 @@ class WeeklyMileageWidget : AppWidgetProvider() {
                 val dayOfWeek = cToday.get(Calendar.DAY_OF_WEEK)
                 //calculate time stuffs
                 val c = Calendar.getInstance()
-                if (prefs.getString("weekStart", "monday") == "sunday") {
-                    c.firstDayOfWeek = Calendar.SUNDAY  // make sunday first of week
-                    c.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY) // set date to sunday this week
+                if (prefs.getString("timeFrame", "week") == "month") {
+                    c.add(Calendar.MONTH, -1) // go back one month
+                    c.set(Calendar.DAY_OF_MONTH, 1) // set date to first day of that month
                 } else {
-                    c.firstDayOfWeek = Calendar.MONDAY  // make monday first of week
-                    c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) // set date to monday this week
+                    if (prefs.getString("weekStart", "monday") == "sunday") {
+                        c.firstDayOfWeek = Calendar.SUNDAY  // make sunday first of week
+                        c.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY) // set date to sunday this week
+                    } else {
+                        c.firstDayOfWeek = Calendar.MONDAY  // make monday first of week
+                        c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) // set date to monday this week
+                    }
+                    c.add(Calendar.DATE, -7) // go to previous week
                 }
-                c.add(Calendar.DATE, -7) // go to previous week
 
-                val xxx = prefs.getString("weekStart", "monday")
                 val weekDayToWeekLengthMap = if (prefs.getString("weekStart", "monday") == "sunday") {
                     listOf(0, 1, 2, 3, 4, 5, 6, 7)
                 } else {
@@ -249,11 +277,20 @@ class WeeklyMileageWidget : AppWidgetProvider() {
                 }
                 val lengthOfThisWeek = weekDayToWeekLengthMap[dayOfWeek]
 
-                val list1 = DoubleArray(7)
-                val list2 = DoubleArray(lengthOfThisWeek)
+                val list1 = if (prefs.getString("timeFrame", "week") == "month") {
+                    DoubleArray(c.getActualMaximum(Calendar.DAY_OF_MONTH))
+                } else {
+                    DoubleArray(7)
+                }
+
+                val list2 = if (prefs.getString("timeFrame", "week") == "month") {
+                    DoubleArray(cToday.get(Calendar.DAY_OF_MONTH))
+                } else {
+                    DoubleArray(lengthOfThisWeek)
+                }
 
                 c.add(Calendar.DATE, -1) // go one back so we can advance in each iteration
-                for (i in 0..6) {
+                for (i in list1.indices) {
                     c.add(Calendar.DATE, 1) // next day
                     val dateOfTheDay = format.format(c.time).slice(0..9)
                     for (ii in 0 until response.length()) {
@@ -376,7 +413,6 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         dataSet2.setValueTextColors(labelColorList)
         dataSet2.valueTextSize = 24f
         val circleColorList = MutableList(list2.size - 1) {Color.TRANSPARENT}
-
         // alpha halved, others stay the same
         circleColorList.add(
             argb(
@@ -399,7 +435,8 @@ class WeeklyMileageWidget : AppWidgetProvider() {
         chart.xAxis.textColor = prefs.getInt("color_x_axis", 0)
         chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
         chart.xAxis.axisMinimum = -0.3f
-        chart.xAxis.axisMaximum = 6.3f
+        val test = (listOf(list1.size,  list2.size)).max()!!.toFloat() - 0.7f
+        chart.xAxis.axisMaximum = (listOf(list1.size,  list2.size)).max()!!.toFloat() - 0.7f
         chart.xAxis.textSize = 14f
         chart.extraBottomOffset = 10f
         chart.axisRight.isEnabled = false
